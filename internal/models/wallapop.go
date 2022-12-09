@@ -11,6 +11,7 @@ import (
 	gojson "github.com/goccy/go-json"
 )
 
+// Основная структура в которую помещаются данные ответа на запрос от Wallapop
 type AllData struct {
 	SearchObjects []struct {
 		ID          string  `json:"id"`
@@ -83,6 +84,7 @@ type AllData struct {
 	} `json:"search_objects"`
 }
 
+// Структуры для формирования данных и дальнейшей их отправке (Из за паралельного подхода в сборе всех товаров со всех категорий пришлось прибегнуть к такому решения с множеством структур)
 type Cars struct {
 	ID          string  `json:"id"`
 	Title       string  `json:"title"`
@@ -428,6 +430,7 @@ type PhotoTV struct {
 	} `json:"location"`
 }
 
+// Объявление структур
 var (
 	CarsCat    []Cars
 	ElecCat    []Electronic
@@ -436,11 +439,13 @@ var (
 	PhotoTVCat []PhotoTV
 )
 
+// Основная универсальная функция для работы со всеми категориями
 func FindAllInCategory(url string, urlSlug string, category string) error {
 	var all AllData
 
 	resp, err := http.Get(url)
 	if err != nil {
+		logrus.Warnf("Error request to wallapop data - %s", err)
 		return err
 	}
 	defer resp.Body.Close()
