@@ -32,33 +32,11 @@ type AllData struct {
 			ID        string `json:"id"`
 			MicroName string `json:"micro_name"`
 			Image     struct {
-				Original       string `json:"original"`
-				Xsmall         string `json:"xsmall"`
-				Small          string `json:"small"`
-				Large          string `json:"large"`
-				Medium         string `json:"medium"`
-				Xlarge         string `json:"xlarge"`
-				OriginalWidth  int    `json:"original_width"`
-				OriginalHeight int    `json:"original_height"`
+				Original string `json:"original"`
 			} `json:"image"`
 			Online bool   `json:"online"`
 			Kind   string `json:"kind"`
 		} `json:"user"`
-		Flags struct {
-			Pending  bool `json:"pending"`
-			Sold     bool `json:"sold"`
-			Reserved bool `json:"reserved"`
-			Banned   bool `json:"banned"`
-			Expired  bool `json:"expired"`
-			Onhold   bool `json:"onhold"`
-		} `json:"flags"`
-		VisibilityFlags struct {
-			Bumped        bool `json:"bumped"`
-			Highlighted   bool `json:"highlighted"`
-			Urgent        bool `json:"urgent"`
-			CountryBumped bool `json:"country_bumped"`
-			Boosted       bool `json:"boosted"`
-		} `json:"visibility_flags"`
 		Price        float64 `json:"price"`
 		Currency     string  `json:"currency"`
 		FreeShipping bool    `json:"free_shipping"`
@@ -69,13 +47,7 @@ type AllData struct {
 			UserAllowsShipping  bool        `json:"user_allows_shipping"`
 			CostConfigurationID interface{} `json:"cost_configuration_id"`
 		} `json:"shipping"`
-		SupportsShipping bool   `json:"supports_shipping"`
-		ShippingAllowed  bool   `json:"shipping_allowed"`
-		SellerID         string `json:"seller_id"`
-		Favorited        bool   `json:"favorited"`
-		CreationDate     int64  `json:"creation_date"`
-		ModificationDate int64  `json:"modification_date"`
-		Location         struct {
+		Location struct {
 			City        string `json:"city"`
 			PostalCode  string `json:"postal_code"`
 			CountryCode string `json:"country_code"`
@@ -85,72 +57,18 @@ type AllData struct {
 }
 
 type RequestLast struct {
-	ID          string  `json:"id"`
-	Title       string  `json:"title"`
-	Description string  `json:"description"`
-	Distance    float64 `json:"distance"`
-	Images      []struct {
-		Original       string `json:"original"`
-		Xsmall         string `json:"xsmall"`
-		Small          string `json:"small"`
-		Large          string `json:"large"`
-		Medium         string `json:"medium"`
-		Xlarge         string `json:"xlarge"`
-		OriginalWidth  int    `json:"original_width"`
-		OriginalHeight int    `json:"original_height"`
-	} `json:"images"`
 	User struct {
-		ID        string `json:"id"`
-		MicroName string `json:"micro_name"`
-		Image     struct {
-			Original       string `json:"original"`
-			Xsmall         string `json:"xsmall"`
-			Small          string `json:"small"`
-			Large          string `json:"large"`
-			Medium         string `json:"medium"`
-			Xlarge         string `json:"xlarge"`
-			OriginalWidth  int    `json:"original_width"`
-			OriginalHeight int    `json:"original_height"`
-		} `json:"image"`
-		Online bool   `json:"online"`
-		Kind   string `json:"kind"`
-	} `json:"user"`
-	Flags struct {
-		Pending  bool `json:"pending"`
-		Sold     bool `json:"sold"`
-		Reserved bool `json:"reserved"`
-		Banned   bool `json:"banned"`
-		Expired  bool `json:"expired"`
-		Onhold   bool `json:"onhold"`
-	} `json:"flags"`
-	VisibilityFlags struct {
-		Bumped        bool `json:"bumped"`
-		Highlighted   bool `json:"highlighted"`
-		Urgent        bool `json:"urgent"`
-		CountryBumped bool `json:"country_bumped"`
-		Boosted       bool `json:"boosted"`
-	} `json:"visibility_flags"`
-	Price        float64 `json:"price"`
-	Currency     string  `json:"currency"`
-	FreeShipping bool    `json:"free_shipping"`
-	WebSlug      string  `json:"web_slug"`
-	CategoryID   int     `json:"category_id"`
-	Shipping     struct {
-		ItemIsShippable     bool        `json:"item_is_shippable"`
-		UserAllowsShipping  bool        `json:"user_allows_shipping"`
-		CostConfigurationID interface{} `json:"cost_configuration_id"`
-	} `json:"shipping"`
-	SupportsShipping bool   `json:"supports_shipping"`
-	ShippingAllowed  bool   `json:"shipping_allowed"`
-	SellerID         string `json:"seller_id"`
-	Favorited        bool   `json:"favorited"`
-	CreationDate     int64  `json:"creation_date"`
-	ModificationDate int64  `json:"modification_date"`
-	Location         struct {
-		City        string `json:"city"`
-		PostalCode  string `json:"postal_code"`
-		CountryCode string `json:"country_code"`
-	} `json:"location"`
+		Name        string `json:"user_name"`
+		DateRegistr string `json:"user_date_reg"`
+		PhoneNumber string `json:"user_phone"`
+	} `json:"user_data"`
+	Products struct {
+		ProdName    string `json:"product_name"`
+		PhotoUrl    string `json:"photo_url"`
+		Price       string `json:"price"`
+		Description string `json:"description"`
+		Url         string `json:"url"`
+	} `json:"product_data"`
 }
 
 // Объявление структур
@@ -203,27 +121,28 @@ func FindAllInCategory(url string, urlSlug string, category string) {
 func AppendData(all *AllData, data *[]RequestLast, urlSlug string) {
 	for _, val := range all.SearchObjects {
 		*data = append(*data, RequestLast{
-			ID:               val.ID,
-			Title:            val.Title,
-			Description:      val.Description,
-			Distance:         val.Distance,
-			Images:           val.Images,
-			User:             val.User,
-			Flags:            val.Flags,
-			VisibilityFlags:  val.VisibilityFlags,
-			Price:            val.Price,
-			Currency:         val.Currency,
-			FreeShipping:     val.FreeShipping,
-			WebSlug:          fmt.Sprintf("%s/%s", urlSlug, val.WebSlug),
-			CategoryID:       val.CategoryID,
-			Shipping:         val.Shipping,
-			SupportsShipping: val.SupportsShipping,
-			ShippingAllowed:  val.ShippingAllowed,
-			SellerID:         val.SellerID,
-			Favorited:        val.Favorited,
-			CreationDate:     val.CreationDate,
-			ModificationDate: val.ModificationDate,
-			Location:         val.Location,
+			User: struct {
+				Name        string "json:\"user_name\""
+				DateRegistr string "json:\"user_date_reg\""
+				PhoneNumber string "json:\"user_phone\""
+			}{
+				Name:        val.User.MicroName,
+				DateRegistr: "No Data",
+				PhoneNumber: "No Data",
+			},
+			Products: struct {
+				ProdName    string "json:\"product_name\""
+				PhotoUrl    string "json:\"photo_url\""
+				Price       string "json:\"price\""
+				Description string "json:\"description\""
+				Url         string "json:\"url\""
+			}{
+				ProdName:    val.Title,
+				PhotoUrl:    val.Images[0].Original,
+				Price:       fmt.Sprintf("%f", val.Price),
+				Description: val.Description,
+				Url:         val.WebSlug,
+			},
 		})
 	}
 }

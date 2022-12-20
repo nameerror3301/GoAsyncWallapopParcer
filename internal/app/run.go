@@ -1,10 +1,14 @@
 package app
 
 import (
+	"GoAsyncWallapopParcer/internal/config"
 	"GoAsyncWallapopParcer/internal/models"
+	"bytes"
 	"fmt"
+	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	gojson "github.com/goccy/go-json"
 	"github.com/sirupsen/logrus"
@@ -18,9 +22,18 @@ const (
 	PhotoTV    = "PhotoTV"
 )
 
+const (
+	QueryElectronic = "electronics"
+	QueryCars       = "cars"
+	QueryMotos      = "motos"
+	QueryHome       = "home"
+	QueryPhotoTV    = "phototv"
+)
+
 func Run() {
 	var wg sync.WaitGroup
 	var urlSlug string = "https://es.wallapop.com/item"
+	conf := config.ReadConfig()
 
 	for i := 40; i <= 400; {
 		wg.Add(5)
@@ -69,19 +82,15 @@ func Run() {
 	/*
 		Отправка запроса в сервис хранилища
 	*/
-	fmt.Println("Машины и все что с ними связанно", string(MarshalData(models.Cars)))
-	fmt.Println()
-	fmt.Println()
-	fmt.Println("Электроника вся", string(MarshalData(models.Elec)))
-	fmt.Println()
-	fmt.Println()
-	fmt.Println("Все для дома", string(MarshalData(models.Home)))
-	fmt.Println()
-	fmt.Println()
-	fmt.Println("Мотоциклы и все что с ними связанно", string(MarshalData(models.Motos)))
-	fmt.Println()
-	fmt.Println()
-	fmt.Println("Все для фото и тв", string(MarshalData(models.PhotoTV)))
+	SendData(MarshalData(models.Elec), QueryElectronic, conf.Data.JwtToken)
+
+	SendData(MarshalData(models.Cars), QueryCars, conf.Data.JwtToken)
+
+	SendData(MarshalData(models.Home), QueryHome, conf.Data.JwtToken)
+
+	SendData(MarshalData(models.Motos), QueryMotos, conf.Data.JwtToken)
+
+	SendData(MarshalData(models.PhotoTV), QueryPhotoTV, conf.Data.JwtToken)
 }
 
 func MarshalData(data interface{}) []byte {
@@ -93,42 +102,37 @@ func MarshalData(data interface{}) []byte {
 	return out
 }
 
-// func FindAll(urlSlug string, url string, category string) []byte {
-// 	var out []byte
-// 	var err error
+func SendData(data []byte, category string, token string) {
+	conf := config.ReadConfig()
 
-// 	err = models.FindAllInCategory(url, urlSlug, category)
+	url := fmt.Sprintf("%sadd?category=%s&market=wallapop", conf.Data.OutStorageAddr, category)
 
-// 	if err != nil {
-// 		logrus.Infof("Err parce data - %s", err)
-// 	}
+	reader := bytes.NewReader(data)
+	req, err := http.NewRequest(http.MethodPost, url, reader)
+	if err != nil {
+		logrus.Error("Err request generation - %s", err)
+	}
 
-// 	switch category {
-// 	case "Cars":
-// 		out, err = gojson.Marshal(models.CarsCat)
-// 		if err != nil {
-// 			logrus.Debugf("Err marshal struct to json Cars - %s", &err)
-// 		}
-// 	case "Electronic":
-// 		out, err = gojson.Marshal(models.ElecCat)
-// 		if err != nil {
-// 			logrus.Debugf("Err marshal struct to json Electronic - %s", &err)
-// 		}
-// 	case "Home":
-// 		out, err = gojson.Marshal(models.HomeCat)
-// 		if err != nil {
-// 			logrus.Debugf("Err marshal struct to json Home - %s", &err)
-// 		}
-// 	case "Motos":
-// 		out, err = gojson.Marshal(models.MotosCat)
-// 		if err != nil {
-// 			logrus.Debugf("Err marshal struct to json Motos - %s", &err)
-// 		}
-// 	case "PhotoTV":
-// 		out, err = gojson.Marshal(models.PhotoTVCat)
-// 		if err != nil {
-// 			logrus.Debugf("Err marshal struct to json PhoneTV - %s", &err)
-// 		}
-// 	}
-// 	return out
-// }
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	client := &http.Client{}
+
+	res, err := client.Do(req)
+	if err != nil {
+		logrus.Error("Err send data - %s", err)
+		time.Sleep(5 * time.Second)
+		SendData(MarshalData(models.Elec), category, conf.Data.JwtToken)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusUnauthorized {
+		logrus.Warnf("Check jwt token - %d", http.StatusUnauthorized)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		logrus.Errorf("Err sending data - %s", err)
+	} else {
+		logrus.Info("Success sending data")
+	}
+}
