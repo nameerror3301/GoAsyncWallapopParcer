@@ -23,7 +23,6 @@
 │   └── models
 │       └── wallapop.go // Бизнес логика
 ├── Readme.md
-└── test.txt
 ```
 
 ## Использование
