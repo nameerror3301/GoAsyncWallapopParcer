@@ -3,6 +3,7 @@ package main
 import (
 	"GoAsyncWallapopParcer/internal/app"
 	"runtime"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -17,5 +18,9 @@ func init() {
 }
 
 func main() {
-	app.Run()
+	for {
+		timer1 := time.NewTimer(30 * time.Second)
+		<-timer1.C
+		app.Run()
+	}
 }
